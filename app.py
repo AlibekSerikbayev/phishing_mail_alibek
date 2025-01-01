@@ -1,43 +1,33 @@
 import streamlit as st
 import joblib
+from sklearn.feature_extraction.text import TfidfVectorizer
 
-# Modelni yuklash
+# Load the model
 model = joblib.load('phishing_model.pkl')
 
-# Dastur sarlavhasi
-st.title("Phishing Email Aniqlash Dasturi")
+# Load the vectorizer (make sure to save and load the same vectorizer used during training)
+vectorizer = joblib.load('vectorizer.pkl')  # Assuming you saved your vectorizer
 
-# Email matnini kiritish
-email_text = st.text_area("Email matnini kiriting:")
+# Application title
+st.title("Phishing Email Detection App")
 
-# Tekshirish tugmasi
-if st.button("Tekshirish"):
-    # Modeldan natijani olish
-    prediction = model.predict([email_text])
-    confidence = model.decision_function([email_text])  # Ishonch darajasini olish
+# Input email text
+email_text = st.text_area("Enter the email text:")
 
-    # Natijani ko'rsatish
+# Check button
+if st.button("Check"):
+    # Convert the email text to the same format used during training
+    email_vector = vectorizer.transform([email_text])  # Transform the text to a numeric format
+
+    # Get prediction from the model
+    prediction = model.predict(email_vector)  # Use the transformed input
+    confidence = model.decision_function(email_vector)  # Get confidence level
+
+    # Display the result
     if prediction[0] == 1:  # 1 - Phishing Email
-        st.error("Bu phishing email!")
+        st.error("This is a phishing email!")
     else:
-        st.success("Bu xavfsiz email!")
+        st.success("This is a safe email!")
 
-    # Ishonch darajasini ko'rsatish
-    st.write(f"Ishonch darajasi: {confidence[0]:.2f}")
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    # Show confidence level
+    st.write(f"Confidence level: {confidence[0]:.2f}")
